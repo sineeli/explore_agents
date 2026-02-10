@@ -1,103 +1,82 @@
 {
-  "members": [
+  "description": "Sample normalized member data across all three dimensions. Each row contains all hierarchy levels for ITEM, TIME, and LOCATION dimensions. The agent uses this to understand what members exist and how they roll up.",
+
+  "itemMembers": [
     {
-      "BUYER": "Buyer 203",
-      "CLASS": "CLS2124",
-      "CLASSVENDOR": "CLS2124-StyleCraft",
-      "DEPARTMENT": "DPT21",
-      "DIVISION": "DIV2",
-      "ITEM": "ITM21243-040214",
-      "STYLE": "STY21243-04",
-      "STYLECOLOR": "STCOL21243-0402",
-      "SUBCLASS": "SCLS21243",
-      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-LuxeVibe",
-      "SUBDEPARTMENT": "SDPT212",
-      "TOTALBUYER": "ALLBUYERS",
-      "TOTALPRODUCT": "ALLPRODUCTS",
-      "TOTALVENDOR": "ALLVENDORS",
-      "VENDOR": "StyleCraft"
+      "ITEM": "ITM21243-040214", "STYLECOLOR": "STCOL21243-0402", "STYLE": "STY21243-04",
+      "SUBCLASS": "W Tops-Tees Crew", "CLASS": "W Tops-Tees", "DEPARTMENT": "W Tops",
+      "SUBDEPARTMENT": "Womens Tops", "DIVISION": "Womens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 203", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "W Tops-Tees-StyleCraft", "VENDOR": "StyleCraft", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-LuxeVibe"
     },
     {
-      "BUYER": "Buyer 203",
-      "CLASS": "CLS2124",
-      "CLASSVENDOR": "CLS2124-LuxeApparel",
-      "DEPARTMENT": "DPT21",
-      "DIVISION": "DIV2",
-      "ITEM": "ITM21243-040203",
-      "STYLE": "STY21243-13",
-      "STYLECOLOR": "STCOL21243-1301",
-      "SUBCLASS": "SCLS21243",
-      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-EverGlam",
-      "SUBDEPARTMENT": "SDPT212",
-      "TOTALBUYER": "ALLBUYERS",
-      "TOTALPRODUCT": "ALLPRODUCTS",
-      "TOTALVENDOR": "ALLVENDORS",
-      "VENDOR": "LuxeApparel"
+      "ITEM": "ITM21243-040203", "STYLECOLOR": "STCOL21243-1301", "STYLE": "STY21243-13",
+      "SUBCLASS": "W Tops-Tees Crew", "CLASS": "W Tops-Tees", "DEPARTMENT": "W Tops",
+      "SUBDEPARTMENT": "Womens Tops", "DIVISION": "Womens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 203", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "W Tops-Tees-LuxeApparel", "VENDOR": "LuxeApparel", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-EverGlam"
     },
     {
-      "BUYER": "Buyer 203",
-      "CLASS": "CLS2124",
-      "CLASSVENDOR": "CLS2124-StyleCraft",
-      "DEPARTMENT": "DPT21",
-      "DIVISION": "DIV2",
-      "ITEM": "ITM21243-030306",
-      "STYLE": "STY21243-03",
-      "STYLECOLOR": "STCOL21243-0303",
-      "SUBCLASS": "SCLS21243",
-      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-ChicEssence",
-      "SUBDEPARTMENT": "SDPT212",
-      "TOTALBUYER": "ALLBUYERS",
-      "TOTALPRODUCT": "ALLPRODUCTS",
-      "TOTALVENDOR": "ALLVENDORS",
-      "VENDOR": "StyleCraft"
+      "ITEM": "ITM21243-030306", "STYLECOLOR": "STCOL21243-0303", "STYLE": "STY21243-03",
+      "SUBCLASS": "W Tops-Tees VNeck", "CLASS": "W Tops-Tees", "DEPARTMENT": "W Tops",
+      "SUBDEPARTMENT": "Womens Tops", "DIVISION": "Womens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 203", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "W Tops-Tees-StyleCraft", "VENDOR": "StyleCraft", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-ChicEssence"
     },
     {
-      "BUYER": "Buyer 203",
-      "CLASS": "CLS2124",
-      "CLASSVENDOR": "CLS2124-LuxeApparel",
-      "DEPARTMENT": "DPT21",
-      "DIVISION": "DIV2",
-      "ITEM": "ITM21244-040808",
-      "STYLE": "STY21244-04",
-      "STYLECOLOR": "STCOL21244-0408",
-      "SUBCLASS": "SCLS21244",
-      "SUBCLASSATTRIBUTE": "SCLS21244-Seasonal-EverGlam",
-      "SUBDEPARTMENT": "SDPT212",
-      "TOTALBUYER": "ALLBUYERS",
-      "TOTALPRODUCT": "ALLPRODUCTS",
-      "TOTALVENDOR": "ALLVENDORS",
-      "VENDOR": "LuxeApparel"
+      "ITEM": "ITM21244-040808", "STYLECOLOR": "STCOL21244-0408", "STYLE": "STY21244-04",
+      "SUBCLASS": "W Tops-Tanks Basic", "CLASS": "W Tops-Tanks", "DEPARTMENT": "W Tops",
+      "SUBDEPARTMENT": "Womens Tops", "DIVISION": "Womens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 203", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "W Tops-Tanks-LuxeApparel", "VENDOR": "LuxeApparel", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-EverGlam"
     },
     {
-      "BUYER": "Buyer 203",
-      "CLASS": "CLS2124",
-      "CLASSVENDOR": "CLS2124-StyleCraft",
-      "DEPARTMENT": "DPT21",
-      "DIVISION": "DIV2",
-      "ITEM": "ITM21244-120508",
-      "STYLE": "STY21244-12",
-      "STYLECOLOR": "STCOL21244-1205",
-      "SUBCLASS": "SCLS21244",
-      "SUBCLASSATTRIBUTE": "SCLS21244-Seasonal-ChicEssence",
-      "SUBDEPARTMENT": "SDPT212",
-      "TOTALBUYER": "ALLBUYERS",
-      "TOTALPRODUCT": "ALLPRODUCTS",
-      "TOTALVENDOR": "ALLVENDORS",
-      "VENDOR": "StyleCraft"
+      "ITEM": "ITM21244-120508", "STYLECOLOR": "STCOL21244-1205", "STYLE": "STY21244-12",
+      "SUBCLASS": "W Tops-Tanks Graphic", "CLASS": "W Tops-Tanks", "DEPARTMENT": "W Tops",
+      "SUBDEPARTMENT": "Womens Tops", "DIVISION": "Womens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 203", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "W Tops-Tanks-StyleCraft", "VENDOR": "StyleCraft", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-ChicEssence"
     },
     {
-      "CLASS": " ",
-      "ITEM": "FG-14",
-      "STYLE": "PF-10",
-      "STYLECOLOR": "ALL PRODUCTS",
-      "SUBCLASS": "PL-12"
+      "ITEM": "ITM31101-010101", "STYLECOLOR": "STCOL31101-0101", "STYLE": "STY31101-01",
+      "SUBCLASS": "M Bottoms-Jeans Slim", "CLASS": "M Bottoms-Jeans", "DEPARTMENT": "Mens Bottoms",
+      "SUBDEPARTMENT": "Mens Bottoms", "DIVISION": "Mens Apparel", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 301", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "M Bottoms-Jeans-DenimCo", "VENDOR": "DenimCo", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Core-Essentials"
     },
     {
-      "CLASS": " ",
-      "ITEM": "RM_Blue Goose",
-      "STYLE": "RM",
-      "STYLECOLOR": "ALL PRODUCTS",
-      "SUBCLASS": "RM"
+      "ITEM": "ITM50001-010101", "STYLECOLOR": "STCOL50001-0101", "STYLE": "STY50001-01",
+      "SUBCLASS": "Apples Gala", "CLASS": "Apples", "DEPARTMENT": "Fresh Produce",
+      "SUBDEPARTMENT": "Produce", "DIVISION": "Grocery", "TOTALPRODUCT": "ALLPRODUCTS",
+      "BUYER": "Buyer 501", "TOTALBUYER": "ALLBUYERS",
+      "CLASSVENDOR": "Apples-FreshFarms", "VENDOR": "FreshFarms", "TOTALVENDOR": "ALLVENDORS",
+      "SUBCLASSATTRIBUTE": "Seasonal-Fall"
     }
+  ],
+
+  "timeMembers": [
+    { "WEEK": "W01-2025", "MONTH": "Feb-2025",  "QUARTER": "Q1-2025", "SEASON": "Spring2025", "HALFYEAR": "H1-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W02-2025", "MONTH": "Feb-2025",  "QUARTER": "Q1-2025", "SEASON": "Spring2025", "HALFYEAR": "H1-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W13-2025", "MONTH": "May-2025",  "QUARTER": "Q2-2025", "SEASON": "Spring2025", "HALFYEAR": "H1-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W27-2025", "MONTH": "Aug-2025",  "QUARTER": "Q3-2025", "SEASON": "Fall2025",   "HALFYEAR": "H2-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W40-2025", "MONTH": "Nov-2025",  "QUARTER": "Q4-2025", "SEASON": "Fall2025",   "HALFYEAR": "H2-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W01-2024", "MONTH": "Feb-2024",  "QUARTER": "Q1-2024", "SEASON": "Spring2024", "HALFYEAR": "H1-2024", "FISCALYEAR": "FY2024", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W27-2024", "MONTH": "Aug-2024",  "QUARTER": "Q3-2024", "SEASON": "Fall2024",   "HALFYEAR": "H2-2024", "FISCALYEAR": "FY2024", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W01-2023", "MONTH": "Feb-2023",  "QUARTER": "Q1-2023", "SEASON": "Spring2023", "HALFYEAR": "H1-2023", "FISCALYEAR": "FY2023", "TOTALTIME": "ALLTIME" },
+    { "WEEK": "W27-2025", "MONTH": "Aug-2025",  "QUARTER": "Q3-2025", "SEASON": "Season1",    "HALFYEAR": "H2-2025", "FISCALYEAR": "FY2025", "TOTALTIME": "ALLTIME" }
+  ],
+
+  "locationMembers": [
+    { "STORE": "Store-001", "DISTRICT": "District-NE1", "REGION": "Northeast", "CHANNEL": "Stores",    "TOTALLOCATION": "ALLLOCATION" },
+    { "STORE": "Store-002", "DISTRICT": "District-NE1", "REGION": "Northeast", "CHANNEL": "Stores",    "TOTALLOCATION": "ALLLOCATION" },
+    { "STORE": "Store-050", "DISTRICT": "District-SE1", "REGION": "Southeast", "CHANNEL": "Stores",    "TOTALLOCATION": "ALLLOCATION" },
+    { "STORE": "Online-01", "DISTRICT": "Digital",      "REGION": "Digital",   "CHANNEL": "Online",    "TOTALLOCATION": "ALLLOCATION" },
+    { "STORE": "WHL-001",   "DISTRICT": "Wholesale-1",  "REGION": "National",  "CHANNEL": "Wholesale", "TOTALLOCATION": "ALLLOCATION" }
   ]
 }

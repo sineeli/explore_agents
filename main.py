@@ -9,18 +9,18 @@ Usage:
 """
 
 import argparse
-import sys
 
 from agent import ProductHierarchyAgent
 
 
 EXAMPLE_QUERIES = [
-    "Show me top performing classes under department DPT21 by Net Sales",
-    "What subclasses exist under class CLS2124?",
-    "Compute the variance of Net Sales between This Week and Last Year for all classes",
-    "List all available measures",
-    "Which vendors supply items in subclass SCLS21243?",
-    "Show me the hierarchy levels for the Item Hierarchy",
+    "show me sales retail for w tops for fy2025 for version WP and version LY",
+    "show me sales retail for w tops-tees for fy2025 for version WP",
+    "show me sales retail for w tops-tees for fy2025 for version LLY",
+    "show me gross margin percentage for w tops-tees crew for fy2025 for version BUPP/BULP % Variance BUPP",
+    "show me sales units for apples for fy2025 season1",
+    "get me data for gross margin profit for women tops for 2024 and break it down by channel",
+    "fetch data for version PRODFC for womens apparel for 2023 fiscal year and break it down by month",
 ]
 
 
@@ -66,7 +66,6 @@ def main():
     parser.add_argument("--cleanup", action="store_true", help="Delete assistant and vector store after session")
     args = parser.parse_args()
 
-    # Initialize and set up the agent
     print("Initializing agent...")
     agent = ProductHierarchyAgent()
     agent.setup()

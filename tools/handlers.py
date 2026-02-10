@@ -1,355 +1,253 @@
 """
-Tool handler implementations.
+Tool handler implementations with Pydantic validation.
 
-Each function corresponds to a tool the agent can call.
-In production, these would call your real data API endpoints.
-Here we provide both:
-  1. A mock/local implementation using the JSON data files (for testing)
-  2. The HTTP API call pattern (commented, ready for your real backend)
+Two tools only — data fetching. The model handles all math/sorting/variance.
+
+In production:
+  - fetch_data calls your real data API (POST /api/v1/data/query)
+  - get_members calls your real hierarchy API (POST /api/v1/hierarchy/members)
+
+For local testing, mock implementations return simulated data based on the
+JSON metadata files so the full agent flow works end-to-end.
 """
 
+import hashlib
 import json
-import os
 from pathlib import Path
+
+from tools.models import FetchDataInput, GetMembersInput
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
-# ---------------------------------------------------------------------------
-# Data loading helpers
-# ---------------------------------------------------------------------------
 
 def _load_json(filename: str) -> dict:
     with open(DATA_DIR / filename) as f:
         return json.load(f)
 
 
-def _load_hierarchies() -> dict:
-    return _load_json("hierarchies.json")
-
-
-def _load_measures() -> dict:
-    return _load_json("measures.json")
-
-
-def _load_members() -> list[dict]:
-    return _load_json("members.json")["members"]
-
-
 # ---------------------------------------------------------------------------
-# Tool: get_hierarchy_levels
+# Tool: fetch_data
 # ---------------------------------------------------------------------------
 
-def get_hierarchy_levels(hierarchy_name: str) -> str:
-    """Return ordered levels for a hierarchy."""
-    data = _load_hierarchies()
-    for h in data["hierarchies"]:
-        if h["name"].upper() == hierarchy_name.upper():
-            levels = sorted(h["levels"], key=lambda l: l["order"])
-            result = {
-                "hierarchy": h["name"],
-                "displayName": h["displayName"],
-                "description": h["description"],
-                "levels": [
-                    {
-                        "level": lv["level"],
-                        "order": lv["order"],
-                        "displayName": lv.get("displayName", lv["level"]),
-                        "description": lv.get("description", ""),
-                    }
-                    for lv in levels
-                ],
-            }
-            return json.dumps(result, indent=2)
+def _handle_fetch_data(params: FetchDataInput) -> str:
+    """
+    Fetch measure data from the API.
 
-    return json.dumps({"error": f"Hierarchy '{hierarchy_name}' not found. Available: ITEMHIERARCHY, BUYERHIERARCHY, VENDORHIERARCHY, SUBCLASSATTRIBUTEHIERARCHY"})
+    Returns raw data to the model — no math, no sorting.
+    The model interprets and presents the data to the user.
+    """
+
+    # ------------------------------------------------------------------
+    # PRODUCTION: Uncomment this block to call your real data API
+    #
+    # import requests
+    # from config import DATA_API_BASE_URL
+    #
+    # payload = {
+    #     "measureVersions": params.measure_versions,
+    #     "dimensions": {
+    #         "item": [m.model_dump() for m in params.item_members],
+    #         "time": [m.model_dump() for m in params.time_members],
+    #     },
+    # }
+    # if params.location_members:
+    #     payload["dimensions"]["location"] = [m.model_dump() for m in params.location_members]
+    # if params.break_down_by:
+    #     payload["breakDownBy"] = params.break_down_by.model_dump()
+    #
+    # resp = requests.post(f"{DATA_API_BASE_URL}/data/query", json=payload)
+    # resp.raise_for_status()
+    # return resp.text
+    # ------------------------------------------------------------------
+
+    # MOCK: Generate simulated data for testing
+    item_members = [m.model_dump() for m in params.item_members]
+    time_members = [m.model_dump() for m in params.time_members]
+    location_members = [m.model_dump() for m in params.location_members] if params.location_members else None
+    break_down_by = params.break_down_by.model_dump() if params.break_down_by else None
+
+    if break_down_by:
+        return _mock_breakdown_data(params.measure_versions, item_members, time_members,
+                                     location_members, break_down_by)
+    else:
+        return _mock_aggregate_data(params.measure_versions, item_members, time_members,
+                                     location_members)
+
+
+def _mock_aggregate_data(
+    measure_versions: list[str],
+    item_members: list[dict],
+    time_members: list[dict],
+    location_members: list[dict] | None,
+) -> str:
+    """Return a single aggregated row with values for each measure-version."""
+    item_ctx = ", ".join(f"{m['level']}={m['member']}" for m in item_members)
+    time_ctx = ", ".join(f"{m['level']}={m['member']}" for m in time_members)
+
+    result = {
+        "context": {
+            "item": item_ctx,
+            "time": time_ctx,
+            "location": (
+                ", ".join(f"{m['level']}={m['member']}" for m in location_members)
+                if location_members else "TOTALLOCATION"
+            ),
+        },
+        "data": {},
+    }
+
+    for mv in measure_versions:
+        seed = f"{mv}:{item_ctx}:{time_ctx}"
+        h = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
+        if "PCT" in mv or "VP" in mv:
+            result["data"][mv] = round((h % 10000) / 100.0 - 20, 2)
+        elif "UNITS" in mv:
+            result["data"][mv] = h % 500000 + 10000
+        else:
+            result["data"][mv] = round((h % 10000000) / 100.0 + 50000, 2)
+
+    return json.dumps(result, indent=2)
+
+
+def _mock_breakdown_data(
+    measure_versions: list[str],
+    item_members: list[dict],
+    time_members: list[dict],
+    location_members: list[dict] | None,
+    break_down_by: dict,
+) -> str:
+    """Return data broken down by a dimension level."""
+    members_data = _load_json("members.json")
+
+    dim = break_down_by["dimension"]
+    level = break_down_by["level"]
+
+    if dim == "ITEM":
+        source = members_data["itemMembers"]
+    elif dim == "TIME":
+        source = members_data["timeMembers"]
+    elif dim == "LOCATION":
+        source = members_data["locationMembers"]
+    else:
+        source = []
+
+    breakdown_members = sorted(set(
+        row[level] for row in source if level in row and row[level]
+    ))
+
+    if not breakdown_members:
+        breakdown_members = [f"{level}_1", f"{level}_2", f"{level}_3"]
+
+    item_ctx = ", ".join(f"{m['level']}={m['member']}" for m in item_members)
+    time_ctx = ", ".join(f"{m['level']}={m['member']}" for m in time_members)
+
+    rows = []
+    for bm in breakdown_members:
+        row = {"breakdownMember": bm, "breakdownLevel": level}
+        for mv in measure_versions:
+            seed = f"{mv}:{item_ctx}:{time_ctx}:{bm}"
+            h = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
+            if "PCT" in mv or "VP" in mv:
+                row[mv] = round((h % 10000) / 100.0 - 20, 2)
+            elif "UNITS" in mv:
+                row[mv] = h % 500000 + 10000
+            else:
+                row[mv] = round((h % 10000000) / 100.0 + 50000, 2)
+        rows.append(row)
+
+    result = {
+        "context": {
+            "item": item_ctx,
+            "time": time_ctx,
+            "location": (
+                ", ".join(f"{m['level']}={m['member']}" for m in location_members)
+                if location_members else "TOTALLOCATION"
+            ),
+        },
+        "breakDownBy": {"dimension": dim, "level": level},
+        "rowCount": len(rows),
+        "data": rows,
+    }
+
+    return json.dumps(result, indent=2)
 
 
 # ---------------------------------------------------------------------------
 # Tool: get_members
 # ---------------------------------------------------------------------------
 
-def get_members(
-    hierarchy_name: str,
-    level: str,
-    parent_level: str | None = None,
-    parent_member: str | None = None,
-) -> str:
-    """Fetch distinct members at a hierarchy level, optionally filtered by parent."""
-    members = _load_members()
-    level_key = level.upper()
-
-    # Filter by parent if provided
-    filtered = members
-    if parent_level and parent_member:
-        pk = parent_level.upper()
-        filtered = [m for m in members if m.get(pk) == parent_member]
-
-    # Extract distinct values at the requested level
-    seen = set()
-    result_members = []
-    for m in filtered:
-        val = m.get(level_key)
-        if val and val.strip() and val not in seen:
-            seen.add(val)
-            result_members.append(val)
+def _handle_get_members(params: GetMembersInput) -> str:
+    """
+    Look up members at a hierarchy level within a dimension.
+    Optionally filter by a parent member.
+    """
 
     # ------------------------------------------------------------------
-    # Production API call pattern (uncomment when connecting to real API):
+    # PRODUCTION: Uncomment this block to call your real hierarchy API
     #
     # import requests
     # from config import DATA_API_BASE_URL
     #
-    # resp = requests.post(
-    #     f"{DATA_API_BASE_URL}/hierarchy/members",
-    #     json={
-    #         "hierarchyName": hierarchy_name,
-    #         "level": level,
-    #         "filters": (
-    #             [{"level": parent_level, "members": [parent_member]}]
-    #             if parent_level and parent_member else []
-    #         ),
-    #     },
-    # )
+    # payload = {
+    #     "dimension": params.dimension.value,
+    #     "level": params.level,
+    # }
+    # if params.parent_level and params.parent_member:
+    #     payload["filters"] = [{"level": params.parent_level, "members": [params.parent_member]}]
+    #
+    # resp = requests.post(f"{DATA_API_BASE_URL}/hierarchy/members", json=payload)
     # resp.raise_for_status()
     # return resp.text
     # ------------------------------------------------------------------
 
+    # MOCK: Use local JSON data
+    members_data = _load_json("members.json")
+    dimension = params.dimension.value
+
+    if dimension == "ITEM":
+        source = members_data["itemMembers"]
+    elif dimension == "TIME":
+        source = members_data["timeMembers"]
+    elif dimension == "LOCATION":
+        source = members_data["locationMembers"]
+    else:
+        return json.dumps({"error": f"Unknown dimension: {dimension}. Use ITEM, TIME, or LOCATION."})
+
+    filtered = source
+    if params.parent_level and params.parent_member:
+        filtered = [row for row in source if row.get(params.parent_level) == params.parent_member]
+
+    seen = set()
+    result_members = []
+    for row in filtered:
+        val = row.get(params.level)
+        if val and val.strip() and val not in seen:
+            seen.add(val)
+            result_members.append(val)
+
     return json.dumps({
-        "hierarchy": hierarchy_name,
-        "level": level_key,
-        "parent_filter": {"level": parent_level, "member": parent_member} if parent_level else None,
+        "dimension": dimension,
+        "level": params.level,
+        "parentFilter": (
+            {"level": params.parent_level, "member": params.parent_member}
+            if params.parent_level else None
+        ),
         "count": len(result_members),
         "members": sorted(result_members),
     }, indent=2)
 
 
 # ---------------------------------------------------------------------------
-# Tool: query_measure_data
+# Dispatcher: validates with Pydantic then routes to handler
 # ---------------------------------------------------------------------------
-
-def query_measure_data(
-    measure_name: str,
-    version: str,
-    group_by_level: str,
-    filter_level: str | None = None,
-    filter_member: str | None = None,
-    sort_order: str = "desc",
-    top_n: int | None = None,
-) -> str:
-    """
-    Query measure data grouped by a hierarchy level.
-
-    In production this calls your data API. Here we return simulated data
-    based on the member structure so the agent flow works end-to-end.
-    """
-    import hashlib
-
-    members = _load_members()
-    level_key = group_by_level.upper()
-
-    # Apply filter
-    filtered = members
-    if filter_level and filter_member:
-        fk = filter_level.upper()
-        filtered = [m for m in members if m.get(fk) == filter_member]
-
-    # Aggregate distinct members at group_by_level with simulated values
-    seen = {}
-    for m in filtered:
-        val = m.get(level_key)
-        if val and val.strip():
-            if val not in seen:
-                # Generate a deterministic pseudo-random value from the member+measure
-                seed = f"{val}:{measure_name}:{version}"
-                h = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
-                seen[val] = round((h % 100000) / 100.0 + 1000, 2)
-
-    # Sort
-    items = sorted(seen.items(), key=lambda x: x[1], reverse=(sort_order == "desc"))
-    if top_n:
-        items = items[:top_n]
-
-    # ------------------------------------------------------------------
-    # Production API call pattern:
-    #
-    # import requests
-    # from config import DATA_API_BASE_URL
-    #
-    # payload = {
-    #     "measures": [{"name": measure_name, "version": version}],
-    #     "groupBy": {"hierarchy": "ITEMHIERARCHY", "level": group_by_level},
-    #     "filters": (
-    #         [{"level": filter_level, "members": [filter_member]}]
-    #         if filter_level and filter_member else []
-    #     ),
-    #     "sort": {"field": measure_name, "order": sort_order},
-    #     "limit": top_n,
-    # }
-    # resp = requests.post(f"{DATA_API_BASE_URL}/data/query", json=payload)
-    # resp.raise_for_status()
-    # return resp.text
-    # ------------------------------------------------------------------
-
-    return json.dumps({
-        "measure": measure_name,
-        "version": version,
-        "groupBy": level_key,
-        "filter": {"level": filter_level, "member": filter_member} if filter_level else None,
-        "sortOrder": sort_order,
-        "resultCount": len(items),
-        "data": [{"member": k, "value": v} for k, v in items],
-    }, indent=2)
-
-
-# ---------------------------------------------------------------------------
-# Tool: list_measures
-# ---------------------------------------------------------------------------
-
-def list_measures(search_term: str | None = None) -> str:
-    """List available measures, optionally filtered by keyword."""
-    data = _load_measures()
-    results = []
-
-    for m in data["measures"]:
-        # Keyword filter
-        if search_term:
-            st = search_term.lower()
-            searchable = f"{m['name']} {m['displayName']} {m['description']}".lower()
-            if st not in searchable:
-                continue
-
-        entry = {
-            "name": m["name"],
-            "displayName": m["displayName"],
-            "description": m["description"],
-            "versions": [v["name"] for v in m["versions"]],
-        }
-        if m.get("derivedMeasures"):
-            entry["derivedMeasures"] = [
-                {"name": dm["name"], "displayName": dm["displayName"], "description": dm["description"]}
-                for dm in m["derivedMeasures"]
-            ]
-        results.append(entry)
-
-    return json.dumps({"measures": results, "count": len(results)}, indent=2)
-
-
-# ---------------------------------------------------------------------------
-# Tool: compute_variance
-# ---------------------------------------------------------------------------
-
-def compute_variance(
-    measure_name: str,
-    version_a: str,
-    version_b: str,
-    group_by_level: str,
-    variance_type: str = "percentage",
-    filter_level: str | None = None,
-    filter_member: str | None = None,
-    sort_order: str = "desc",
-    top_n: int | None = None,
-) -> str:
-    """
-    Compute variance between two versions of a measure.
-
-    Fetches data for both versions and computes the difference.
-    """
-    # Get data for both versions
-    data_a = json.loads(query_measure_data(
-        measure_name, version_a, group_by_level, filter_level, filter_member,
-    ))
-    data_b = json.loads(query_measure_data(
-        measure_name, version_b, group_by_level, filter_level, filter_member,
-    ))
-
-    # Index version B by member
-    b_map = {d["member"]: d["value"] for d in data_b["data"]}
-
-    # Compute variance
-    results = []
-    for d in data_a["data"]:
-        member = d["member"]
-        val_a = d["value"]
-        val_b = b_map.get(member)
-        if val_b is None:
-            continue
-
-        if variance_type == "percentage":
-            var_val = round(((val_a - val_b) / val_b) * 100, 2) if val_b != 0 else None
-        else:
-            var_val = round(val_a - val_b, 2)
-
-        if var_val is not None:
-            results.append({
-                "member": member,
-                f"{version_a}_value": val_a,
-                f"{version_b}_value": val_b,
-                "variance": var_val,
-                "variance_type": variance_type,
-            })
-
-    # Sort
-    results.sort(key=lambda x: x["variance"], reverse=(sort_order == "desc"))
-    if top_n:
-        results = results[:top_n]
-
-    # ------------------------------------------------------------------
-    # Production API call pattern:
-    #
-    # import requests
-    # from config import DATA_API_BASE_URL
-    #
-    # payload = {
-    #     "measures": [
-    #         {"name": measure_name, "version": version_a},
-    #         {"name": measure_name, "version": version_b},
-    #     ],
-    #     "computeVariance": {
-    #         "type": variance_type,
-    #         "baseVersion": version_b,
-    #         "compareVersion": version_a,
-    #     },
-    #     "groupBy": {"hierarchy": "ITEMHIERARCHY", "level": group_by_level},
-    #     "filters": (
-    #         [{"level": filter_level, "members": [filter_member]}]
-    #         if filter_level and filter_member else []
-    #     ),
-    #     "sort": {"field": "variance", "order": sort_order},
-    #     "limit": top_n,
-    # }
-    # resp = requests.post(f"{DATA_API_BASE_URL}/data/variance", json=payload)
-    # resp.raise_for_status()
-    # return resp.text
-    # ------------------------------------------------------------------
-
-    return json.dumps({
-        "measure": measure_name,
-        "versionA": version_a,
-        "versionB": version_b,
-        "varianceType": variance_type,
-        "groupBy": group_by_level,
-        "filter": {"level": filter_level, "member": filter_member} if filter_level else None,
-        "resultCount": len(results),
-        "data": results,
-    }, indent=2)
-
-
-# ---------------------------------------------------------------------------
-# Dispatcher: route tool calls to handlers
-# ---------------------------------------------------------------------------
-
-TOOL_HANDLERS = {
-    "get_hierarchy_levels": get_hierarchy_levels,
-    "get_members": get_members,
-    "query_measure_data": query_measure_data,
-    "list_measures": list_measures,
-    "compute_variance": compute_variance,
-}
-
 
 def dispatch_tool_call(function_name: str, arguments: dict) -> str:
-    """Route a tool call to its handler and return the result as a string."""
-    handler = TOOL_HANDLERS.get(function_name)
-    if handler is None:
+    """Validate arguments with Pydantic model, then execute the handler."""
+    if function_name == "fetch_data":
+        params = FetchDataInput.model_validate(arguments)
+        return _handle_fetch_data(params)
+    elif function_name == "get_members":
+        params = GetMembersInput.model_validate(arguments)
+        return _handle_get_members(params)
+    else:
         return json.dumps({"error": f"Unknown function: {function_name}"})
-    return handler(**arguments)

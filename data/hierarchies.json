@@ -1,50 +1,99 @@
 {
-  "hierarchies": [
+  "dimensions": [
     {
-      "name": "ITEMHIERARCHY",
-      "displayName": "Item Hierarchy",
-      "description": "Product item hierarchy from finest grain (ITEM) up to total product",
-      "enableRbac": true,
-      "levels": [
-        { "level": "ITEM",           "order": 1, "displayName": "Item",           "description": "Individual SKU / item" },
-        { "level": "STYLECOLOR",     "order": 2, "displayName": "Style Color",    "description": "Style + Color combination" },
-        { "level": "STYLE",          "order": 3, "displayName": "Style",          "description": "Product style" },
-        { "level": "SUBCLASS",       "order": 4, "displayName": "Subclass",       "description": "Product subclass grouping" },
-        { "level": "CLASS",          "order": 5, "displayName": "Class",          "description": "Merchandise class" },
-        { "level": "DEPARTMENT",     "order": 6, "displayName": "Department",     "description": "Merchandise department" },
-        { "level": "SUBDEPARTMENT",  "order": 7, "displayName": "Sub-Department", "description": "Sub-department grouping" },
-        { "level": "DIVISION",       "order": 8, "displayName": "Division",       "description": "Business division" },
-        { "level": "TOTALPRODUCT",   "order": 9, "displayName": "Total Product",  "description": "Aggregate of all products" }
+      "name": "ITEM",
+      "displayName": "Item Dimension",
+      "description": "Product merchandise hierarchy from individual item up to total product",
+      "hierarchies": [
+        {
+          "name": "ITEMHIERARCHY",
+          "displayName": "Item Hierarchy",
+          "description": "Primary item hierarchy: ITEM → STYLECOLOR → STYLE → SUBCLASS → CLASS → DEPARTMENT → SUBDEPARTMENT → DIVISION → TOTALPRODUCT",
+          "enableRbac": true,
+          "levels": [
+            { "level": "ITEM",           "order": 1, "displayName": "Item",            "description": "Individual SKU / item (finest grain)" },
+            { "level": "STYLECOLOR",     "order": 2, "displayName": "Style Color",     "description": "Style + Color combination" },
+            { "level": "STYLE",          "order": 3, "displayName": "Style",           "description": "Product style" },
+            { "level": "SUBCLASS",       "order": 4, "displayName": "Subclass",        "description": "Product subclass (e.g. W Tops-Tees Crew, W Tops-Tees)" },
+            { "level": "CLASS",          "order": 5, "displayName": "Class",           "description": "Merchandise class (e.g. W Tops, Mens Bottoms)" },
+            { "level": "DEPARTMENT",     "order": 6, "displayName": "Department",      "description": "Merchandise department (e.g. Womens Apparel, Mens)" },
+            { "level": "SUBDEPARTMENT",  "order": 7, "displayName": "Sub-Department",  "description": "Sub-department grouping" },
+            { "level": "DIVISION",       "order": 8, "displayName": "Division",        "description": "Business division" },
+            { "level": "TOTALPRODUCT",   "order": 9, "displayName": "Total Product",   "description": "Aggregate of all products" }
+          ]
+        },
+        {
+          "name": "BUYERHIERARCHY",
+          "displayName": "Buyer Hierarchy",
+          "description": "Buyer hierarchy: BUYER → TOTALBUYER",
+          "enableRbac": false,
+          "levels": [
+            { "level": "BUYER",       "order": 1, "displayName": "Buyer",        "description": "Individual buyer" },
+            { "level": "TOTALBUYER",  "order": 2, "displayName": "Total Buyers", "description": "All buyers aggregate" }
+          ]
+        },
+        {
+          "name": "VENDORHIERARCHY",
+          "displayName": "Vendor Hierarchy",
+          "description": "Vendor hierarchy: CLASSVENDOR → VENDOR → TOTALVENDOR",
+          "enableRbac": false,
+          "levels": [
+            { "level": "CLASSVENDOR",  "order": 1, "displayName": "Class-Vendor",  "description": "Class + Vendor combination" },
+            { "level": "VENDOR",       "order": 2, "displayName": "Vendor",        "description": "Individual vendor" },
+            { "level": "TOTALVENDOR",  "order": 3, "displayName": "Total Vendors", "description": "All vendors aggregate" }
+          ]
+        },
+        {
+          "name": "SUBCLASSATTRIBUTEHIERARCHY",
+          "displayName": "Subclass Attribute Hierarchy",
+          "description": "Attributes tied to subclass level (e.g. Seasonal-LuxeVibe, Seasonal-ChicEssence)",
+          "enableRbac": false,
+          "levels": [
+            { "level": "SUBCLASSATTRIBUTE", "order": 1, "displayName": "Subclass Attribute", "description": "Subclass attribute tag" }
+          ]
+        }
       ]
     },
     {
-      "name": "BUYERHIERARCHY",
-      "displayName": "Buyer Hierarchy",
-      "description": "Buyer hierarchy from individual buyer up to total buyers",
-      "enableRbac": false,
-      "levels": [
-        { "level": "BUYER",       "order": 1, "displayName": "Buyer",        "description": "Individual buyer" },
-        { "level": "TOTALBUYER",  "order": 2, "displayName": "Total Buyers", "description": "Aggregate of all buyers" }
+      "name": "TIME",
+      "displayName": "Time Dimension",
+      "description": "Calendar/fiscal time hierarchy from week up to total time",
+      "hierarchies": [
+        {
+          "name": "TIMEHIERARCHY",
+          "displayName": "Time Hierarchy",
+          "description": "Fiscal time hierarchy: WEEK → MONTH → QUARTER → SEASON → HALFYEAR → FISCALYEAR → TOTALTIME",
+          "enableRbac": false,
+          "levels": [
+            { "level": "WEEK",        "order": 1, "displayName": "Week",        "description": "Fiscal week (e.g. W01-2025, W52-2024)" },
+            { "level": "MONTH",       "order": 2, "displayName": "Month",       "description": "Fiscal month (e.g. Jan-2025, Feb-2025)" },
+            { "level": "QUARTER",     "order": 3, "displayName": "Quarter",     "description": "Fiscal quarter (e.g. Q1-2025, Q2-2025)" },
+            { "level": "SEASON",      "order": 4, "displayName": "Season",      "description": "Season (e.g. Season1, Spring2025, Fall2025)" },
+            { "level": "HALFYEAR",    "order": 5, "displayName": "Half Year",   "description": "First or second half of fiscal year (e.g. H1-2025)" },
+            { "level": "FISCALYEAR",  "order": 6, "displayName": "Fiscal Year", "description": "Full fiscal year (e.g. FY2025, FY2024, FY2023)" },
+            { "level": "TOTALTIME",   "order": 7, "displayName": "Total Time",  "description": "Aggregate across all time" }
+          ]
+        }
       ]
     },
     {
-      "name": "VENDORHIERARCHY",
-      "displayName": "Vendor Hierarchy",
-      "description": "Vendor hierarchy from individual vendor up to total vendors",
-      "enableRbac": false,
-      "levels": [
-        { "level": "CLASSVENDOR",  "order": 1, "displayName": "Class-Vendor",  "description": "Class and vendor combination" },
-        { "level": "VENDOR",       "order": 2, "displayName": "Vendor",        "description": "Individual vendor" },
-        { "level": "TOTALVENDOR",  "order": 3, "displayName": "Total Vendors", "description": "Aggregate of all vendors" }
-      ]
-    },
-    {
-      "name": "SUBCLASSATTRIBUTEHIERARCHY",
-      "displayName": "Subclass Attribute Hierarchy",
-      "description": "Attribute hierarchy based on subclass attributes",
-      "enableRbac": false,
-      "levels": [
-        { "level": "SUBCLASSATTRIBUTE", "order": 1, "displayName": "Subclass Attribute", "description": "Subclass attribute (e.g. Seasonal-LuxeVibe)" }
+      "name": "LOCATION",
+      "displayName": "Location Dimension",
+      "description": "Store/channel location hierarchy from store up to total location",
+      "hierarchies": [
+        {
+          "name": "LOCATIONHIERARCHY",
+          "displayName": "Location Hierarchy",
+          "description": "Location hierarchy: STORE → DISTRICT → REGION → CHANNEL → TOTALLOCATION",
+          "enableRbac": true,
+          "levels": [
+            { "level": "STORE",          "order": 1, "displayName": "Store",          "description": "Individual store location" },
+            { "level": "DISTRICT",       "order": 2, "displayName": "District",       "description": "Group of stores in a district" },
+            { "level": "REGION",         "order": 3, "displayName": "Region",         "description": "Geographic region" },
+            { "level": "CHANNEL",        "order": 4, "displayName": "Channel",        "description": "Sales channel (e.g. Stores, Online, Wholesale)" },
+            { "level": "TOTALLOCATION",  "order": 5, "displayName": "Total Location", "description": "Aggregate across all locations" }
+          ]
+        }
       ]
     }
   ]

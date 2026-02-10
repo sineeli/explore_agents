@@ -3,108 +3,183 @@
     {
       "name": "NS_RTL",
       "displayName": "Net Sales $",
+      "aliases": ["sales retail", "net sales", "sales $", "retail sales", "sales dollars"],
       "dataType": "DOUBLE",
-      "description": "Net Sales in retail dollars",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",       "displayName": "This Week",         "description": "Current week value" },
-        { "name": "LW",       "displayName": "Last Week",         "description": "Last week value" },
-        { "name": "LY",       "displayName": "Last Year",         "description": "Same period last year" },
-        { "name": "TDC",      "displayName": "To Date Current",   "description": "To-date current period" },
-        { "name": "TDC2",     "displayName": "To Date Current 2", "description": "To-date current period 2" },
-        { "name": "LTRP",     "displayName": "Last TRP",          "description": "Last time-reference period" }
-      ],
-      "derivedMeasures": [
-        {
-          "name": "NS_RTLTDC2LTRPTDCP",
-          "displayName": "NS_RTL TDC2/LTRP % Var",
-          "dataType": "DOUBLE",
-          "description": "Net Sales $ TDC2/LTRP % Var - percentage variance between TDC2 and LTRP",
-          "version": { "name": "TDC2LTRPTDCP", "displayName": "TDC2/LTRP % Var", "description": "TDC2/LTRP % Var" },
-          "variable": { "name": "NS_RTL", "displayName": "NS_RTL", "description": "Net Sales $" }
-        },
-        {
-          "name": "NS_RTLTWLYVP",
-          "displayName": "NS_RTL TW/LY Var %",
-          "dataType": "DOUBLE",
-          "description": "Net Sales $ This Week vs Last Year variance percentage",
-          "version": { "name": "TWLYVP", "displayName": "TW/LY Var %", "description": "This Week vs Last Year variance percentage" },
-          "variable": { "name": "NS_RTL", "displayName": "NS_RTL", "description": "Net Sales $" }
-        }
-      ]
+      "description": "Net Sales in retail dollars"
     },
     {
       "name": "NS_UNITS",
       "displayName": "Net Sales Units",
+      "aliases": ["sales units", "units sold", "unit sales"],
       "dataType": "DOUBLE",
-      "description": "Net Sales in units sold",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
-        { "name": "LW",  "displayName": "Last Week",       "description": "Last week value" },
-        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" },
-        { "name": "TDC", "displayName": "To Date Current",  "description": "To-date current period" }
-      ],
-      "derivedMeasures": [
-        {
-          "name": "NS_UNITSTWLYVP",
-          "displayName": "NS_UNITS TW/LY Var %",
-          "dataType": "DOUBLE",
-          "description": "Net Sales Units This Week vs Last Year variance percentage",
-          "version": { "name": "TWLYVP", "displayName": "TW/LY Var %", "description": "This Week vs Last Year variance percentage" },
-          "variable": { "name": "NS_UNITS", "displayName": "NS_UNITS", "description": "Net Sales Units" }
-        }
-      ]
+      "description": "Net Sales in units"
     },
     {
       "name": "GM_RTL",
       "displayName": "Gross Margin $",
+      "aliases": ["gross margin", "gross margin dollars", "margin $", "gm dollars", "gross margin profit"],
       "dataType": "DOUBLE",
-      "description": "Gross Margin in retail dollars",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
-        { "name": "LW",  "displayName": "Last Week",       "description": "Last week value" },
-        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" },
-        { "name": "TDC", "displayName": "To Date Current",  "description": "To-date current period" }
-      ],
-      "derivedMeasures": []
+      "description": "Gross Margin in retail dollars"
     },
     {
       "name": "GM_PCT",
       "displayName": "Gross Margin %",
+      "aliases": ["gross margin percentage", "margin %", "gm %", "gm percentage", "margin percentage"],
       "dataType": "DOUBLE",
-      "description": "Gross Margin as percentage of net sales",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
-        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" }
-      ],
-      "derivedMeasures": []
+      "description": "Gross Margin as a percentage of net sales"
     },
     {
       "name": "SELL_THRU_PCT",
       "displayName": "Sell Through %",
+      "aliases": ["sell through", "sell-through", "sellthrough", "sell thru"],
       "dataType": "DOUBLE",
-      "description": "Sell-through rate as a percentage",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",  "displayName": "This Week", "description": "Current week value" },
-        { "name": "LY",  "displayName": "Last Year",  "description": "Same period last year" }
-      ],
-      "derivedMeasures": []
+      "description": "Sell-through rate as a percentage"
     },
     {
       "name": "INV_UNITS",
       "displayName": "Inventory Units",
+      "aliases": ["inventory", "stock units", "inv units", "on hand units"],
       "dataType": "DOUBLE",
-      "description": "Current inventory in units",
-      "isHidden": false,
-      "versions": [
-        { "name": "TW",  "displayName": "This Week", "description": "Current week value" },
-        { "name": "LW",  "displayName": "Last Week",  "description": "Last week value" }
-      ],
-      "derivedMeasures": []
+      "description": "Current inventory in units"
+    },
+    {
+      "name": "INV_RTL",
+      "displayName": "Inventory $",
+      "aliases": ["inventory dollars", "stock $", "inv $", "on hand $"],
+      "dataType": "DOUBLE",
+      "description": "Current inventory in retail dollars"
+    },
+    {
+      "name": "RCPT_UNITS",
+      "displayName": "Receipt Units",
+      "aliases": ["receipts", "receipt units", "received units"],
+      "dataType": "DOUBLE",
+      "description": "Receipt units received"
+    },
+    {
+      "name": "RCPT_RTL",
+      "displayName": "Receipt $",
+      "aliases": ["receipt dollars", "receipts $"],
+      "dataType": "DOUBLE",
+      "description": "Receipt value in retail dollars"
+    },
+    {
+      "name": "AUR",
+      "displayName": "Average Unit Retail",
+      "aliases": ["average unit retail", "aur", "avg unit retail", "average price"],
+      "dataType": "DOUBLE",
+      "description": "Average Unit Retail price (Net Sales $ / Net Sales Units)"
     }
-  ]
+  ],
+  "versions": [
+    {
+      "name": "WP",
+      "displayName": "Working Plan",
+      "description": "Current working plan version"
+    },
+    {
+      "name": "LY",
+      "displayName": "Last Year",
+      "description": "Same period last year actuals"
+    },
+    {
+      "name": "LLY",
+      "displayName": "Last Last Year",
+      "description": "Same period two years ago actuals"
+    },
+    {
+      "name": "OP",
+      "displayName": "Original Plan",
+      "description": "Original plan version"
+    },
+    {
+      "name": "CP",
+      "displayName": "Current Plan",
+      "description": "Current plan version"
+    },
+    {
+      "name": "ACT",
+      "displayName": "Actuals",
+      "description": "Actual reported values"
+    },
+    {
+      "name": "BUPP",
+      "displayName": "Bottom-Up Plan Proposed",
+      "description": "Bottom-up plan proposed version"
+    },
+    {
+      "name": "BULP",
+      "displayName": "Bottom-Up Last Plan",
+      "description": "Bottom-up last plan version"
+    },
+    {
+      "name": "PRODFC",
+      "displayName": "Product Forecast",
+      "description": "Product forecast version"
+    },
+    {
+      "name": "TW",
+      "displayName": "This Week",
+      "description": "Current week actual value"
+    },
+    {
+      "name": "LW",
+      "displayName": "Last Week",
+      "description": "Previous week actual value"
+    }
+  ],
+  "derivedVersions": [
+    {
+      "name": "BUPP_BULP_VP",
+      "displayName": "BUPP/BULP % Variance",
+      "description": "Percentage variance between Bottom-Up Plan Proposed (BUPP) and Bottom-Up Last Plan (BULP). Formula: ((BUPP - BULP) / BULP) * 100",
+      "baseVersion": "BUPP",
+      "compareVersion": "BULP",
+      "type": "percentage_variance"
+    },
+    {
+      "name": "WP_LY_VP",
+      "displayName": "WP/LY % Variance",
+      "description": "Percentage variance between Working Plan and Last Year. Formula: ((WP - LY) / LY) * 100",
+      "baseVersion": "WP",
+      "compareVersion": "LY",
+      "type": "percentage_variance"
+    },
+    {
+      "name": "WP_LY_VD",
+      "displayName": "WP/LY $ Variance",
+      "description": "Dollar variance between Working Plan and Last Year. Formula: WP - LY",
+      "baseVersion": "WP",
+      "compareVersion": "LY",
+      "type": "absolute_variance"
+    },
+    {
+      "name": "ACT_LY_VP",
+      "displayName": "ACT/LY % Variance",
+      "description": "Percentage variance between Actuals and Last Year",
+      "baseVersion": "ACT",
+      "compareVersion": "LY",
+      "type": "percentage_variance"
+    },
+    {
+      "name": "BUPP_LY_VP",
+      "displayName": "BUPP/LY % Variance",
+      "description": "Percentage variance between Bottom-Up Plan Proposed and Last Year",
+      "baseVersion": "BUPP",
+      "compareVersion": "LY",
+      "type": "percentage_variance"
+    }
+  ],
+  "combinedMeasureVersions": {
+    "description": "Each measure can be combined with any version or derived version. For example: NS_RTL + WP = 'Net Sales $ Working Plan', GM_PCT + BUPP_BULP_VP = 'Gross Margin % BUPP/BULP % Variance'. The API key for a combined measure-version is: {measure_name}{version_name} (e.g. NS_RTLWP, GM_PCTBUPP_BULP_VP)",
+    "examples": [
+      { "key": "NS_RTLWP",           "meaning": "Net Sales $ for Working Plan version" },
+      { "key": "NS_RTLLY",           "meaning": "Net Sales $ for Last Year version" },
+      { "key": "NS_RTLLLY",          "meaning": "Net Sales $ for Last Last Year version" },
+      { "key": "GM_PCTBUPP",         "meaning": "Gross Margin % for BUPP version" },
+      { "key": "GM_PCTBUPP_BULP_VP", "meaning": "Gross Margin % BUPP/BULP % Variance" },
+      { "key": "NS_UNITSWP",         "meaning": "Net Sales Units for Working Plan version" },
+      { "key": "NS_RTLPRODFC",       "meaning": "Net Sales $ for Product Forecast version" }
+    ]
+  }
 }
