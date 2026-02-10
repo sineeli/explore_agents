@@ -1,163 +1,154 @@
 # Product Hierarchy Agent — Azure AI Foundry
 
-An AI agent that explores hierarchical retail product data across 3 dimensions
-(ITEM, TIME, LOCATION), queries measures/KPIs, and performs math/sorting/variance
-using Azure OpenAI Assistants API with **file search** (vector stores) and
-**Pydantic-based function calling**.
+A dynamically configured AI agent for retail merchandising data.
+**Nothing is hardcoded** — hierarchy levels, members, measures, and versions
+are fetched from the realm API at startup and indexed into Azure vector stores.
+
+The only constants: **3 dimensions** (ITEM, TIME, LOCATION).
 
 ## Architecture
 
 ```
-User: "show me sales retail for w tops for fy2025 for version WP and LY"
-        │
-        ▼
-┌──────────────────────────────────────────────────────────┐
-│  Azure OpenAI Assistant (gpt-5.2)                        │
-│                                                          │
-│  1. file_search (vector store)                           │
-│     ├── hierarchies.json  (3 dimensions, all levels)     │
-│     ├── measures.json     (measures, versions, aliases)  │
-│     └── members.json      (item/time/location members)   │
-│                                                          │
-│  2. Resolves NL → system names via vector store:         │
-│     "sales retail" → NS_RTL                              │
-│     "w tops" → DEPARTMENT='W Tops'                       │
-│     "fy2025" → FISCALYEAR='FY2025'                       │
-│     "WP and LY" → measure_versions: [NS_RTLWP, NS_RTLLY]│
-│                                                          │
-│  3. Calls fetch_data (Pydantic-validated)                │
-│  4. Gets raw data back → model does math/sorting/display │
-└───────────┬──────────────────────────────────────────────┘
-            │ function calls
-            ▼
-┌──────────────────────────────────────────────────────────┐
-│  Tool Handlers (tools/handlers.py)                       │
-│  Pydantic validation → API call → raw data               │
-│                                                          │
-│  Production:                                             │
-│    POST /api/v1/data/query        (fetch_data)           │
-│    POST /api/v1/hierarchy/members (get_members)          │
-└──────────────────────────────────────────────────────────┘
+                          STARTUP
+                            │
+                            ▼
+              ┌──────────────────────────┐
+              │  MetadataLoader          │
+              │  Fetches from realm API: │
+              │  • hierarchies per dim   │
+              │  • members per dim       │
+              │  • measures + versions   │
+              └─────────┬────────────────┘
+                        │
+                        ▼
+              ┌──────────────────────────┐
+              │  build_index_documents() │
+              │  Creates 4 JSON indexes: │
+              │  • item_index.json       │
+              │  • time_index.json       │
+              │  • location_index.json   │
+              │  • measure_index.json    │
+              └─────────┬────────────────┘
+                        │ upload
+                        ▼
+              ┌──────────────────────────┐
+              │  Azure Vector Store      │
+              │  (per-dimension indexes) │
+              └─────────┬────────────────┘
+                        │
+                        ▼
+              ┌──────────────────────────┐
+              │  Azure OpenAI Assistant  │
+              │  • Dynamic system prompt │
+              │    (from fetched metadata)│
+              │  • file_search tool      │
+              │  • fetch_data tool       │
+              │  • get_members tool      │
+              └──────────────────────────┘
+
+                        RUNTIME
+                          │
+   User: "show me sales retail for w tops for fy2025 version WP and LY"
+                          │
+                          ▼
+   1. Model searches item_index → "w tops" = DEPARTMENT='W Tops'
+   2. Model searches time_index → "fy2025" = FISCALYEAR='FY2025'
+   3. Model searches measure_index → "sales retail" = NS_RTL, "WP" + "LY"
+   4. Model calls fetch_data(
+        measure_versions=["NS_RTLWP", "NS_RTLLY"],
+        item_members=[{level: "DEPARTMENT", member: "W Tops"}],
+        time_members=[{level: "FISCALYEAR", member: "FY2025"}]
+      )
+   5. Raw data returned → model computes, sorts, presents
 ```
 
 ## Key Design Principles
 
-- **Model does all the math**: Sorting, variance, percentages — the tools just fetch raw data
-- **Vector store for metadata**: Hierarchies, measures, members uploaded to Azure vector store
-  so the model can resolve natural language ("sales retail") to system names (NS_RTL)
-- **Pydantic tool schemas**: Tool inputs defined as Pydantic models, auto-converted to JSON Schema
-- **3 dimensions**: ITEM (product), TIME (fiscal calendar), LOCATION (store/channel)
+- **Environment-driven**: All metadata fetched at startup from realm API
+- **Per-dimension vector indexes**: item_index, time_index, location_index, measure_index
+- **Model does all math**: Tools only fetch raw data — sorting, variance, formatting by the model
+- **Pydantic tool schemas**: Generic models, no hardcoded levels or names
+- **Dynamic system prompt**: Built from fetched metadata so model knows this environment's structure
 
 ## Setup
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your Azure OpenAI credentials
+# Edit .env with your Azure OpenAI + realm API credentials
 ```
 
 ## Usage
 
 ```bash
-# Interactive mode
-python main.py
-
-# Single query
-python main.py --query "show me sales retail for w tops for fy2025 for version WP and LY"
-
-# Cleanup resources after session
-python main.py --cleanup
+python main.py                  # Interactive mode
+python main.py --query "..."    # Single query
+python main.py --cleanup        # Delete Azure resources after session
 ```
 
 ## Example Queries
 
 ```
 show me sales retail for w tops for fy2025 for version WP and version LY
-show me sales retail for w tops-tees for fy2025 for version WP
-show me sales retail for w tops-tees for fy2025 for version LLY
 show me gross margin percentage for w tops-tees crew for fy2025 for version BUPP/BULP % Variance BUPP
 show me sales units for apples for fy2025 season1
 get me data for gross margin profit for women tops for 2024 and break it down by channel
 fetch data for version PRODFC for womens apparel for 2023 fiscal year and break it down by month
 ```
 
-## Data Model
-
-### 3 Dimensions
-
-| Dimension | Hierarchy Levels |
-|-----------|-----------------|
-| **ITEM** | ITEM → STYLECOLOR → STYLE → SUBCLASS → CLASS → DEPARTMENT → SUBDEPARTMENT → DIVISION → TOTALPRODUCT |
-| **TIME** | WEEK → MONTH → QUARTER → SEASON → HALFYEAR → FISCALYEAR → TOTALTIME |
-| **LOCATION** | STORE → DISTRICT → REGION → CHANNEL → TOTALLOCATION |
-
-### Measures
-
-| Measure | System Name | Aliases |
-|---------|-------------|---------|
-| Net Sales $ | NS_RTL | sales retail, net sales, retail sales |
-| Net Sales Units | NS_UNITS | sales units, units sold |
-| Gross Margin $ | GM_RTL | gross margin, margin $, gross margin profit |
-| Gross Margin % | GM_PCT | gross margin percentage, margin % |
-| Sell Through % | SELL_THRU_PCT | sell through, sell-through |
-| Inventory Units | INV_UNITS | inventory, stock units |
-| Inventory $ | INV_RTL | inventory dollars |
-| Receipt Units | RCPT_UNITS | receipts, receipt units |
-| Receipt $ | RCPT_RTL | receipt dollars |
-| Average Unit Retail | AUR | average unit retail, avg price |
-
-### Versions
-
-| Version | System Name | Description |
-|---------|-------------|-------------|
-| Working Plan | WP | Current working plan |
-| Last Year | LY | Same period last year |
-| Last Last Year | LLY | Two years ago |
-| Actuals | ACT | Actual reported |
-| BUPP | BUPP | Bottom-Up Plan Proposed |
-| BULP | BULP | Bottom-Up Last Plan |
-| Product Forecast | PRODFC | Product forecast |
-| Original Plan | OP | Original plan |
-| Current Plan | CP | Current plan |
-
-### Derived Versions (Variances)
-
-| Derived | Key | Formula |
-|---------|-----|---------|
-| BUPP/BULP % Var | BUPP_BULP_VP | ((BUPP-BULP)/BULP)*100 |
-| WP/LY % Var | WP_LY_VP | ((WP-LY)/LY)*100 |
-| WP/LY $ Var | WP_LY_VD | WP-LY |
-
-### API Payload Structure
-
-The `fetch_data` tool sends this to your backend:
-
-```json
-{
-  "measureVersions": ["NS_RTLWP", "NS_RTLLY"],
-  "dimensions": {
-    "item": [{"level": "DEPARTMENT", "member": "W Tops"}],
-    "time": [{"level": "FISCALYEAR", "member": "FY2025"}]
-  },
-  "breakDownBy": {"dimension": "LOCATION", "level": "CHANNEL"}
-}
-```
-
 ## Project Structure
 
 ```
 explore_agents/
-├── config.py                  # Azure OpenAI configuration
-├── agent.py                   # Assistant lifecycle (vector store + tools + thread)
-├── main.py                    # CLI entry point
+├── config.py              # Azure OpenAI + realm API configuration
+├── metadata_loader.py     # Fetches metadata from realm API, builds vector store docs
+├── agent.py               # Assistant lifecycle (dynamic prompt + indexes + tools)
+├── main.py                # CLI entry point
 ├── tools/
-│   ├── models.py              # Pydantic models for tool input schemas
-│   ├── definitions.py         # Auto-generates JSON Schema from Pydantic models
-│   └── handlers.py            # Tool handlers (Pydantic validation + API call)
-├── data/
-│   ├── hierarchies.json       # 3 dimensions with all hierarchy levels
-│   ├── measures.json          # Measures, versions, aliases, derived versions
-│   └── members.json           # Sample members for each dimension
+│   ├── models.py          # Generic Pydantic models (no hardcoded levels/names)
+│   ├── definitions.py     # Auto-generates JSON Schema from Pydantic models
+│   └── handlers.py        # Pydantic validation → API call → raw data
+├── data/                  # LOCAL FALLBACK ONLY — production uses realm API
+│   ├── hierarchies.json   # Sample hierarchy definitions
+│   ├── measures.json      # Sample measure/version definitions
+│   └── members.json       # Sample member data
 ├── requirements.txt
 └── .env.example
 ```
+
+## How It Works Per Environment
+
+When a new environment loads:
+
+1. **MetadataLoader.load_all()** calls the realm API:
+   - `GET /metadata/dimensions/ITEM/hierarchies` → item hierarchy levels
+   - `GET /metadata/dimensions/ITEM/members` → item member rows
+   - Same for TIME and LOCATION
+   - `GET /metadata/measures` → measures, versions, derived versions
+
+2. **build_index_documents()** creates 4 JSON files:
+   - `item_index.json` — ITEM hierarchies + all levels + distinct members per level
+   - `time_index.json` — TIME hierarchies + all levels + distinct members per level
+   - `location_index.json` — LOCATION hierarchies + all levels + distinct members
+   - `measure_index.json` — measures with aliases + versions + derived versions + combined key examples
+
+3. **build_system_prompt_context()** creates a dynamic prompt section listing:
+   - This environment's hierarchy levels per dimension
+   - Available measures with aliases
+   - Available versions and derived versions
+   - Combined key examples
+
+4. These are uploaded to an Azure vector store and used by the assistant for NL resolution.
+
+## Connecting to a Real Realm API
+
+In `metadata_loader.py`, uncomment the `requests.get(...)` calls in:
+- `_fetch_hierarchies()`
+- `_fetch_members()`
+- `_fetch_measures()`
+
+In `tools/handlers.py`, uncomment the `requests.post(...)` calls in:
+- `_handle_fetch_data()`
+- `_handle_get_members()`
+
+Set `use_local_fallback=False` in the MetadataLoader constructor.

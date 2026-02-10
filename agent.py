@@ -1,19 +1,16 @@
 """
-Azure AI Foundry Agent — Product Hierarchy & Measure Explorer
+Azure AI Foundry Agent — Dynamic Product Hierarchy & Measure Explorer
 
-Uses the Azure OpenAI Assistants API with:
-  1. File Search (Vector Store) — metadata about hierarchies, measures, members
-     uploaded so the model can resolve natural language to actual names
-  2. Function Calling (Pydantic-based) — fetch_data and get_members tools to
-     call the data API. Raw data returned to the model for all math/sorting.
+Nothing is hardcoded. On startup:
+  1. MetadataLoader fetches hierarchies, members, measures from the realm API
+  2. Builds 4 vector store indexes: item_index, time_index, location_index, measure_index
+  3. Creates an assistant with dynamic system prompt + file_search + function calling
+  4. The model resolves natural language via the indexes, calls fetch_data, does all math
 
-Flow:
-  User question → Model searches vector store for metadata →
-  Model resolves to actual measure/version/member names →
-  Model calls fetch_data with resolved params →
-  Raw data returned to model → Model does math/sorting/presentation
+The only constants are the 3 dimension names: ITEM, TIME, LOCATION.
 """
 
+import io
 import json
 import time
 from pathlib import Path
@@ -24,13 +21,13 @@ from config import (
     AZURE_OPENAI_API_VERSION,
     AZURE_OPENAI_DEPLOYMENT,
     AZURE_OPENAI_ENDPOINT,
+    REALM_API_BASE_URL,
 )
+from metadata_loader import MetadataLoader, RealmMetadata, build_index_documents, build_system_prompt_context
 from tools.definitions import TOOL_DEFINITIONS
 from tools.handlers import dispatch_tool_call
 
-DATA_DIR = Path(__file__).parent / "data"
-
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT_BASE = """\
 You are a **Product Data Analyst Agent** for a retail merchandising planning platform.
 
 You help users query product/location/time data by resolving their natural language
@@ -38,48 +35,48 @@ into the correct API parameters.
 
 ## Architecture
 
-Data is organized across **3 dimensions**:
-- **ITEM**: Product hierarchy (ITEM → STYLECOLOR → STYLE → SUBCLASS → CLASS → DEPARTMENT → SUBDEPARTMENT → DIVISION → TOTALPRODUCT)
-- **TIME**: Fiscal time hierarchy (WEEK → MONTH → QUARTER → SEASON → HALFYEAR → FISCALYEAR → TOTALTIME)
-- **LOCATION**: Store/channel hierarchy (STORE → DISTRICT → REGION → CHANNEL → TOTALLOCATION)
-
-**Measures** are KPIs like Net Sales $, Gross Margin %, Inventory Units, etc.
-**Versions** are time/plan perspectives like WP (Working Plan), LY (Last Year), LLY (Last Last Year), BUPP, BULP, PRODFC, ACT, OP, CP.
-**Derived versions** are computed variances like BUPP_BULP_VP (BUPP/BULP % Variance).
+Data is organized across **3 dimensions**: ITEM, TIME, LOCATION.
+Each dimension has hierarchies with ordered levels (varies per environment).
+The hierarchy levels, members, measures, and versions for THIS environment
+are described below and available in the vector store indexes.
 
 ## Your workflow
 
-1. **Resolve metadata**: Use the file_search tool (vector store) to look up the correct:
-   - Measure name (e.g. user says "sales retail" → NS_RTL, "gross margin percentage" → GM_PCT)
-   - Version name (e.g. user says "working plan" → WP, "last year" → LY)
-   - Member names (e.g. user says "w tops" → DEPARTMENT='W Tops', "fy2025" → FISCALYEAR='FY2025')
-   - Derived versions (e.g. "BUPP/BULP % Variance" → BUPP_BULP_VP)
+1. **Resolve metadata**: Search the vector store indexes to find:
+   - The correct measure name (search measure_index)
+   - The correct version name (search measure_index)
+   - The correct item member + level (search item_index)
+   - The correct time member + level (search time_index)
+   - The correct location member + level (search location_index, if needed)
 
-2. **Build the measure-version key**: Concatenate measure name + version name.
-   Examples: NS_RTLWP, NS_RTLLY, GM_PCTBUPP_BULP_VP, NS_RTLPRODFC, NS_UNITSWP
+2. **Build the measure-version key**: Concatenate {measure_name}{version_name}.
 
-3. **Call fetch_data**: With the resolved measure_versions, item_members, time_members,
+3. **Call fetch_data**: With resolved measure_versions, item_members, time_members,
    and optionally location_members and break_down_by.
 
-4. **Present raw data + do math**: The API returns raw numbers. YOU do all:
+4. **Present raw data + do math**: The API returns raw numbers. YOU handle:
    - Sorting (top/bottom performers)
-   - Variance calculation (if user wants A vs B, fetch both and compute difference)
+   - Variance calculation (fetch both versions, compute difference yourself)
    - Percentage calculations
-   - Presentation in tables/bullets
+   - Presentation in tables/bullets with formatted numbers
 
 ## Key rules
 
-- When user says "break it down by channel/month/class", use the break_down_by parameter
+- When user says "break it down by X", use the break_down_by parameter
 - When user asks for two versions (e.g. "WP and LY"), include both in measure_versions
-- If unsure about a member name, use get_members to look it up first
-- Always resolve natural language to actual system names via the vector store metadata
-- Present numbers formatted with commas and appropriate decimal places
+- If unsure about a member name, use get_members to look it up
+- Always resolve natural language to actual system names via vector store indexes
 - If the query is ambiguous, ask for clarification
+
 """
 
 
 class ProductHierarchyAgent:
-    """Manages the Azure OpenAI Assistant lifecycle."""
+    """
+    Manages the Azure OpenAI Assistant lifecycle.
+
+    Dynamically configured from environment metadata — no hardcoded values.
+    """
 
     def __init__(self, client: AzureOpenAI | None = None):
         self.client = client or AzureOpenAI(
@@ -89,51 +86,86 @@ class ProductHierarchyAgent:
         )
         self.assistant = None
         self.vector_store = None
-
-    # ------------------------------------------------------------------
-    # Setup: create vector store + assistant
-    # ------------------------------------------------------------------
+        self.realm: RealmMetadata | None = None
 
     def setup(self) -> "ProductHierarchyAgent":
-        """Create the vector store, upload metadata files, and create the assistant."""
+        """
+        Initialize the agent:
+          1. Fetch metadata from realm API
+          2. Build and upload vector store indexes
+          3. Create the assistant with dynamic prompt
+        """
+        self._load_metadata()
         self._create_vector_store()
         self._create_assistant()
         return self
 
+    # ------------------------------------------------------------------
+    # Step 1: Fetch metadata
+    # ------------------------------------------------------------------
+
+    def _load_metadata(self):
+        """Fetch all metadata from the realm API."""
+        print("[setup] Fetching metadata from realm API...")
+        loader = MetadataLoader(api_base_url=REALM_API_BASE_URL)
+        self.realm = loader.load_all()
+
+        dim_summary = []
+        for dim_name, dim in self.realm.dimensions.items():
+            h_count = len(dim.hierarchies)
+            m_count = len(dim.members)
+            dim_summary.append(f"{dim_name}({h_count} hierarchies, {m_count} members)")
+        print(f"[setup] Loaded: {', '.join(dim_summary)}, "
+              f"{len(self.realm.measures)} measures, "
+              f"{len(self.realm.versions)} versions, "
+              f"{len(self.realm.derived_versions)} derived versions")
+
+    # ------------------------------------------------------------------
+    # Step 2: Build vector store with per-dimension indexes
+    # ------------------------------------------------------------------
+
     def _create_vector_store(self):
-        """Upload hierarchy, measure, and member metadata into a vector store."""
-        print("[setup] Creating vector store...")
+        """Build index documents from metadata and upload to vector store."""
+        print("[setup] Creating vector store with per-dimension indexes...")
         self.vector_store = self.client.vector_stores.create(
-            name="product-metadata-store",
+            name="realm-metadata-indexes",
         )
 
-        file_paths = [
-            DATA_DIR / "hierarchies.json",
-            DATA_DIR / "measures.json",
-            DATA_DIR / "members.json",
-        ]
+        # Build index documents from the fetched metadata
+        index_docs = build_index_documents(self.realm)
 
-        file_streams = [open(fp, "rb") for fp in file_paths]
-        try:
-            file_batch = self.client.vector_stores.file_batches.upload_and_poll(
-                vector_store_id=self.vector_store.id,
-                files=file_streams,
-            )
-            print(f"[setup] Vector store ready — status: {file_batch.status}, "
-                  f"file_counts: {file_batch.file_counts}")
-        finally:
-            for f in file_streams:
-                f.close()
+        # Upload each index as a named file
+        file_streams = []
+        for index_name, content_bytes in index_docs.items():
+            stream = io.BytesIO(content_bytes)
+            stream.name = f"{index_name}.json"
+            file_streams.append(stream)
+
+        file_batch = self.client.vector_stores.file_batches.upload_and_poll(
+            vector_store_id=self.vector_store.id,
+            files=file_streams,
+        )
+        print(f"[setup] Vector store ready — status: {file_batch.status}, "
+              f"file_counts: {file_batch.file_counts}")
+        print(f"[setup] Indexes: {', '.join(index_docs.keys())}")
+
+    # ------------------------------------------------------------------
+    # Step 3: Create assistant with dynamic prompt
+    # ------------------------------------------------------------------
 
     def _create_assistant(self):
-        """Create the assistant with file_search + Pydantic-based function tools."""
+        """Create the assistant with dynamic system prompt + tools."""
         print("[setup] Creating assistant...")
+
+        # Build dynamic system prompt from the fetched metadata
+        env_context = build_system_prompt_context(self.realm)
+        full_prompt = SYSTEM_PROMPT_BASE + "\n" + env_context
 
         all_tools = TOOL_DEFINITIONS + [{"type": "file_search"}]
 
         self.assistant = self.client.beta.assistants.create(
             name="Product Hierarchy Explorer",
-            instructions=SYSTEM_PROMPT,
+            instructions=full_prompt,
             model=AZURE_OPENAI_DEPLOYMENT,
             tools=all_tools,
             tool_resources={
@@ -154,12 +186,7 @@ class ProductHierarchyAgent:
         return thread.id
 
     def chat(self, thread_id: str, user_message: str) -> str:
-        """
-        Send a user message and get the assistant's response.
-
-        Handles the full loop: add message → create run → poll →
-        handle tool calls → return final text.
-        """
+        """Send a user message and return the assistant's response."""
         self.client.beta.threads.messages.create(
             thread_id=thread_id,
             role="user",
@@ -202,7 +229,7 @@ class ProductHierarchyAgent:
                 time.sleep(1)
 
     def _handle_tool_calls(self, thread_id: str, run_id: str, run):
-        """Execute tool calls (validated via Pydantic) and submit results."""
+        """Execute tool calls (Pydantic validated) and submit results."""
         tool_calls = run.required_action.submit_tool_outputs.tool_calls
         tool_outputs = []
 
