@@ -1,0 +1,110 @@
+{
+  "measures": [
+    {
+      "name": "NS_RTL",
+      "displayName": "Net Sales $",
+      "dataType": "DOUBLE",
+      "description": "Net Sales in retail dollars",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",       "displayName": "This Week",         "description": "Current week value" },
+        { "name": "LW",       "displayName": "Last Week",         "description": "Last week value" },
+        { "name": "LY",       "displayName": "Last Year",         "description": "Same period last year" },
+        { "name": "TDC",      "displayName": "To Date Current",   "description": "To-date current period" },
+        { "name": "TDC2",     "displayName": "To Date Current 2", "description": "To-date current period 2" },
+        { "name": "LTRP",     "displayName": "Last TRP",          "description": "Last time-reference period" }
+      ],
+      "derivedMeasures": [
+        {
+          "name": "NS_RTLTDC2LTRPTDCP",
+          "displayName": "NS_RTL TDC2/LTRP % Var",
+          "dataType": "DOUBLE",
+          "description": "Net Sales $ TDC2/LTRP % Var - percentage variance between TDC2 and LTRP",
+          "version": { "name": "TDC2LTRPTDCP", "displayName": "TDC2/LTRP % Var", "description": "TDC2/LTRP % Var" },
+          "variable": { "name": "NS_RTL", "displayName": "NS_RTL", "description": "Net Sales $" }
+        },
+        {
+          "name": "NS_RTLTWLYVP",
+          "displayName": "NS_RTL TW/LY Var %",
+          "dataType": "DOUBLE",
+          "description": "Net Sales $ This Week vs Last Year variance percentage",
+          "version": { "name": "TWLYVP", "displayName": "TW/LY Var %", "description": "This Week vs Last Year variance percentage" },
+          "variable": { "name": "NS_RTL", "displayName": "NS_RTL", "description": "Net Sales $" }
+        }
+      ]
+    },
+    {
+      "name": "NS_UNITS",
+      "displayName": "Net Sales Units",
+      "dataType": "DOUBLE",
+      "description": "Net Sales in units sold",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
+        { "name": "LW",  "displayName": "Last Week",       "description": "Last week value" },
+        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" },
+        { "name": "TDC", "displayName": "To Date Current",  "description": "To-date current period" }
+      ],
+      "derivedMeasures": [
+        {
+          "name": "NS_UNITSTWLYVP",
+          "displayName": "NS_UNITS TW/LY Var %",
+          "dataType": "DOUBLE",
+          "description": "Net Sales Units This Week vs Last Year variance percentage",
+          "version": { "name": "TWLYVP", "displayName": "TW/LY Var %", "description": "This Week vs Last Year variance percentage" },
+          "variable": { "name": "NS_UNITS", "displayName": "NS_UNITS", "description": "Net Sales Units" }
+        }
+      ]
+    },
+    {
+      "name": "GM_RTL",
+      "displayName": "Gross Margin $",
+      "dataType": "DOUBLE",
+      "description": "Gross Margin in retail dollars",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
+        { "name": "LW",  "displayName": "Last Week",       "description": "Last week value" },
+        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" },
+        { "name": "TDC", "displayName": "To Date Current",  "description": "To-date current period" }
+      ],
+      "derivedMeasures": []
+    },
+    {
+      "name": "GM_PCT",
+      "displayName": "Gross Margin %",
+      "dataType": "DOUBLE",
+      "description": "Gross Margin as percentage of net sales",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",  "displayName": "This Week",       "description": "Current week value" },
+        { "name": "LY",  "displayName": "Last Year",       "description": "Same period last year" }
+      ],
+      "derivedMeasures": []
+    },
+    {
+      "name": "SELL_THRU_PCT",
+      "displayName": "Sell Through %",
+      "dataType": "DOUBLE",
+      "description": "Sell-through rate as a percentage",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",  "displayName": "This Week", "description": "Current week value" },
+        { "name": "LY",  "displayName": "Last Year",  "description": "Same period last year" }
+      ],
+      "derivedMeasures": []
+    },
+    {
+      "name": "INV_UNITS",
+      "displayName": "Inventory Units",
+      "dataType": "DOUBLE",
+      "description": "Current inventory in units",
+      "isHidden": false,
+      "versions": [
+        { "name": "TW",  "displayName": "This Week", "description": "Current week value" },
+        { "name": "LW",  "displayName": "Last Week",  "description": "Last week value" }
+      ],
+      "derivedMeasures": []
+    }
+  ]
+}

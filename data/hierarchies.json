@@ -1,0 +1,51 @@
+{
+  "hierarchies": [
+    {
+      "name": "ITEMHIERARCHY",
+      "displayName": "Item Hierarchy",
+      "description": "Product item hierarchy from finest grain (ITEM) up to total product",
+      "enableRbac": true,
+      "levels": [
+        { "level": "ITEM",           "order": 1, "displayName": "Item",           "description": "Individual SKU / item" },
+        { "level": "STYLECOLOR",     "order": 2, "displayName": "Style Color",    "description": "Style + Color combination" },
+        { "level": "STYLE",          "order": 3, "displayName": "Style",          "description": "Product style" },
+        { "level": "SUBCLASS",       "order": 4, "displayName": "Subclass",       "description": "Product subclass grouping" },
+        { "level": "CLASS",          "order": 5, "displayName": "Class",          "description": "Merchandise class" },
+        { "level": "DEPARTMENT",     "order": 6, "displayName": "Department",     "description": "Merchandise department" },
+        { "level": "SUBDEPARTMENT",  "order": 7, "displayName": "Sub-Department", "description": "Sub-department grouping" },
+        { "level": "DIVISION",       "order": 8, "displayName": "Division",       "description": "Business division" },
+        { "level": "TOTALPRODUCT",   "order": 9, "displayName": "Total Product",  "description": "Aggregate of all products" }
+      ]
+    },
+    {
+      "name": "BUYERHIERARCHY",
+      "displayName": "Buyer Hierarchy",
+      "description": "Buyer hierarchy from individual buyer up to total buyers",
+      "enableRbac": false,
+      "levels": [
+        { "level": "BUYER",       "order": 1, "displayName": "Buyer",        "description": "Individual buyer" },
+        { "level": "TOTALBUYER",  "order": 2, "displayName": "Total Buyers", "description": "Aggregate of all buyers" }
+      ]
+    },
+    {
+      "name": "VENDORHIERARCHY",
+      "displayName": "Vendor Hierarchy",
+      "description": "Vendor hierarchy from individual vendor up to total vendors",
+      "enableRbac": false,
+      "levels": [
+        { "level": "CLASSVENDOR",  "order": 1, "displayName": "Class-Vendor",  "description": "Class and vendor combination" },
+        { "level": "VENDOR",       "order": 2, "displayName": "Vendor",        "description": "Individual vendor" },
+        { "level": "TOTALVENDOR",  "order": 3, "displayName": "Total Vendors", "description": "Aggregate of all vendors" }
+      ]
+    },
+    {
+      "name": "SUBCLASSATTRIBUTEHIERARCHY",
+      "displayName": "Subclass Attribute Hierarchy",
+      "description": "Attribute hierarchy based on subclass attributes",
+      "enableRbac": false,
+      "levels": [
+        { "level": "SUBCLASSATTRIBUTE", "order": 1, "displayName": "Subclass Attribute", "description": "Subclass attribute (e.g. Seasonal-LuxeVibe)" }
+      ]
+    }
+  ]
+}

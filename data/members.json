@@ -1,0 +1,103 @@
+{
+  "members": [
+    {
+      "BUYER": "Buyer 203",
+      "CLASS": "CLS2124",
+      "CLASSVENDOR": "CLS2124-StyleCraft",
+      "DEPARTMENT": "DPT21",
+      "DIVISION": "DIV2",
+      "ITEM": "ITM21243-040214",
+      "STYLE": "STY21243-04",
+      "STYLECOLOR": "STCOL21243-0402",
+      "SUBCLASS": "SCLS21243",
+      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-LuxeVibe",
+      "SUBDEPARTMENT": "SDPT212",
+      "TOTALBUYER": "ALLBUYERS",
+      "TOTALPRODUCT": "ALLPRODUCTS",
+      "TOTALVENDOR": "ALLVENDORS",
+      "VENDOR": "StyleCraft"
+    },
+    {
+      "BUYER": "Buyer 203",
+      "CLASS": "CLS2124",
+      "CLASSVENDOR": "CLS2124-LuxeApparel",
+      "DEPARTMENT": "DPT21",
+      "DIVISION": "DIV2",
+      "ITEM": "ITM21243-040203",
+      "STYLE": "STY21243-13",
+      "STYLECOLOR": "STCOL21243-1301",
+      "SUBCLASS": "SCLS21243",
+      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-EverGlam",
+      "SUBDEPARTMENT": "SDPT212",
+      "TOTALBUYER": "ALLBUYERS",
+      "TOTALPRODUCT": "ALLPRODUCTS",
+      "TOTALVENDOR": "ALLVENDORS",
+      "VENDOR": "LuxeApparel"
+    },
+    {
+      "BUYER": "Buyer 203",
+      "CLASS": "CLS2124",
+      "CLASSVENDOR": "CLS2124-StyleCraft",
+      "DEPARTMENT": "DPT21",
+      "DIVISION": "DIV2",
+      "ITEM": "ITM21243-030306",
+      "STYLE": "STY21243-03",
+      "STYLECOLOR": "STCOL21243-0303",
+      "SUBCLASS": "SCLS21243",
+      "SUBCLASSATTRIBUTE": "SCLS21243-Seasonal-ChicEssence",
+      "SUBDEPARTMENT": "SDPT212",
+      "TOTALBUYER": "ALLBUYERS",
+      "TOTALPRODUCT": "ALLPRODUCTS",
+      "TOTALVENDOR": "ALLVENDORS",
+      "VENDOR": "StyleCraft"
+    },
+    {
+      "BUYER": "Buyer 203",
+      "CLASS": "CLS2124",
+      "CLASSVENDOR": "CLS2124-LuxeApparel",
+      "DEPARTMENT": "DPT21",
+      "DIVISION": "DIV2",
+      "ITEM": "ITM21244-040808",
+      "STYLE": "STY21244-04",
+      "STYLECOLOR": "STCOL21244-0408",
+      "SUBCLASS": "SCLS21244",
+      "SUBCLASSATTRIBUTE": "SCLS21244-Seasonal-EverGlam",
+      "SUBDEPARTMENT": "SDPT212",
+      "TOTALBUYER": "ALLBUYERS",
+      "TOTALPRODUCT": "ALLPRODUCTS",
+      "TOTALVENDOR": "ALLVENDORS",
+      "VENDOR": "LuxeApparel"
+    },
+    {
+      "BUYER": "Buyer 203",
+      "CLASS": "CLS2124",
+      "CLASSVENDOR": "CLS2124-StyleCraft",
+      "DEPARTMENT": "DPT21",
+      "DIVISION": "DIV2",
+      "ITEM": "ITM21244-120508",
+      "STYLE": "STY21244-12",
+      "STYLECOLOR": "STCOL21244-1205",
+      "SUBCLASS": "SCLS21244",
+      "SUBCLASSATTRIBUTE": "SCLS21244-Seasonal-ChicEssence",
+      "SUBDEPARTMENT": "SDPT212",
+      "TOTALBUYER": "ALLBUYERS",
+      "TOTALPRODUCT": "ALLPRODUCTS",
+      "TOTALVENDOR": "ALLVENDORS",
+      "VENDOR": "StyleCraft"
+    },
+    {
+      "CLASS": " ",
+      "ITEM": "FG-14",
+      "STYLE": "PF-10",
+      "STYLECOLOR": "ALL PRODUCTS",
+      "SUBCLASS": "PL-12"
+    },
+    {
+      "CLASS": " ",
+      "ITEM": "RM_Blue Goose",
+      "STYLE": "RM",
+      "STYLECOLOR": "ALL PRODUCTS",
+      "SUBCLASS": "RM"
+    }
+  ]
+}
