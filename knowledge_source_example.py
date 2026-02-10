@@ -18,8 +18,8 @@ For our data, we create 4 search indexes and 4 knowledge sources:
   - measure_index / measure_ks  → measures, versions, derived versions
 
 Prerequisites:
-  pip install azure-search-documents azure-identity python-dotenv
-  (uses the latest preview SDK with agentic retrieval support)
+  pip install azure-search-documents>=11.7.0b2 azure-identity python-dotenv
+  (requires the PREVIEW SDK — install with: pip install azure-search-documents --pre)
 """
 
 import os
